@@ -4,7 +4,7 @@
 ==================== READ THIS BEFORE CONTINUING ====================
 =====================================================================
 ========                                    .-----.          ========
-========         .----------------------.   | === |          ========
+
 ========         |.-""""""""""""""""""-.|   |-----|          ========
 ========         ||                    ||   | === |          ========
 ========         ||   KICKSTART.NVIM   ||   |-----|          ========
@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -102,13 +102,18 @@ vim.g.have_nerd_font = false
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
+vim.env.JAVA_HOME = "/Users/ralluri/Library/Java/JavaVirtualMachines/corretto-21.0.5/Contents/Home"
+vim.cmd([[
+    let $JAVA_HOME = '/Users/ralluri/Library/Java/JavaVirtualMachines/corretto-21.0.5/Contents/Home'
+    let $PATH = $JAVA_HOME .. '/bin:' .. $PATH
+]])
 
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
@@ -466,6 +471,7 @@ require('lazy').setup({
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
+      'nvim-java/nvim-java',
     },
     config = function()
       -- Brief aside: **What is LSP?**
@@ -615,6 +621,7 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
+        -- jdtls = {},
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -668,6 +675,52 @@ require('lazy').setup({
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
+          end,
+          jdtls = function()
+            require('java').setup {
+              -- Your custom jdtls settings goes here
+            }
+
+            require('lspconfig').jdtls.setup {
+                 cmd = {
+        "/Users/ralluri/Library/Java/JavaVirtualMachines/corretto-21.0.5/Contents/Home/bin/java",
+        "-Declipse.application=org.eclipse.jdt.ls.core.id1",
+        "-Dosgi.bundles.defaultStartLevel=4",
+        "-Declipse.product=org.eclipse.jdt.ls.core.product",
+        "-Dosgi.checkConfiguration=true",
+        "-Dosgi.sharedConfiguration.area=/Users/ralluri/.local/share/nvim/mason/share/jdtls/config",
+        "-Dosgi.sharedConfiguration.area.readOnly=true",
+        "-Dosgi.configuration.cascaded=true",
+        "-Xms1G",
+        "--add-modules=ALL-SYSTEM",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "-javaagent:/Users/ralluri/.local/share/nvim/mason/share/lombok-nightly/lombok.jar",
+        "-jar", "/Users/ralluri/.local/share/nvim/mason/share/jdtls/plugins/org.eclipse.equinox.launcher.jar",
+        "-configuration", "/Users/ralluri/.cache/nvim/jdtls/config",
+        "-data", "/Users/ralluri/.cache/nvim/jdtls/workspaces/_Users_ralluri_Development_acc_macroservice"
+    },
+    
+   root_dir = require('lspconfig').util.root_pattern("pom.xml", "gradle.build", ".git"),
+              -- Your custom nvim-java configuration goes here
+              settings = {
+                java = {
+                  configuration = {
+                    runtimes = {
+                      {
+                        name = "JavaSE-21",
+                        path = "/Users/ralluri/Library/Java/JavaVirtualMachines/corretto-21.0.5/Contents/Home",
+                        default = true
+                      }
+                    }
+                  }
+                }
+              },
+              on_attach = function(client, bufnr)
+        -- Force set the JAVA_HOME environment variable for jdtls
+        vim.env.JAVA_HOME = "/Users/ralluri/Library/Java/JavaVirtualMachines/corretto-21.0.5/Contents/Home"
+    end
+            }
           end,
         },
       }
@@ -779,16 +832,16 @@ require('lazy').setup({
 
           -- Scroll the documentation window [b]ack / [f]orward
           ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-          ['<C-f>'] = cmp.mapping.scroll_docs(4),
+          -- ['<C-f>'] = cmp.mapping.scroll_docs(4),
 
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          -- ['<C-y>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
-          --['<CR>'] = cmp.mapping.confirm { select = true },
+          ['<CR>'] = cmp.mapping.confirm { select = true },
           --['<Tab>'] = cmp.mapping.select_next_item(),
           --['<S-Tab>'] = cmp.mapping.select_prev_item(),
 
@@ -897,7 +950,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'java' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -916,6 +969,17 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
+  {
+    "nvim-tree/nvim-tree.lua",
+    version = "*",
+    lazy = false,
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+    },
+    config = function()
+      require("nvim-tree").setup {}
+    end,
+  },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
@@ -926,7 +990,7 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
