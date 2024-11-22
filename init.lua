@@ -388,9 +388,13 @@ require('lazy').setup({
         --  All the info you're looking for is in `:help telescope.setup()`
         --
         defaults = {
+          layout_strategy = 'vertical',
           file_ignore_patterns = {
-            "^bin/",
-            "^build/"
+            ".*/bin/.*",    -- Matches any path containing '/bin/'
+            ".*/build/.*"   -- Matches any path containing '/build/'
+          },
+          path_display = {
+            truncate = 1
           }
         },
 
